@@ -9,18 +9,22 @@ internal static class Fixture
 
     public static string SourceText => File.ReadAllText(SourcePath);
 
-    public static Allowlist AllowOf(params string[] names)
+    public static Allowlist AllowOf(params string[] names) => Allowlist.FromNames(names);
+
+    /// <summary>A temp allowlists dir with the given (basename, json) entries; caller deletes.</summary>
+    public static string MakeAllowlistsDir(params (string name, string json)[] files)
     {
-        string json = "[" + string.Join(",", names.Select(n => $"\"{n}\"")) + "]";
-        string tmp = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".json");
-        File.WriteAllText(tmp, json);
-        try
-        {
-            return Allowlist.Load(tmp);
-        }
-        finally
-        {
-            File.Delete(tmp);
-        }
+        string dir = Path.Combine(Path.GetTempPath(), "al-" + Path.GetRandomFileName());
+        Directory.CreateDirectory(dir);
+        foreach (var (name, json) in files)
+            File.WriteAllText(Path.Combine(dir, name), json);
+        return dir;
+    }
+
+    /// <summary>A fetcher that always returns the fixture and counts calls.</summary>
+    public static (Func<string, string> fetch, Func<int> calls) CountingFetcher()
+    {
+        int n = 0;
+        return (_ => { n++; return SourceText; }, () => n);
     }
 }

@@ -2,13 +2,13 @@ using System.Text.Json;
 
 namespace FilterIcs;
 
-/// <summary>Raised when names.json is missing, not JSON, or schema-invalid (exit 4).</summary>
-public sealed class AllowlistException : Exception
+/// <summary>A per-feed problem (bad JSON, missing fileName, bad names). The feed is skipped.</summary>
+public sealed class FeedException : Exception
 {
-    public AllowlistException(string message, Exception? inner = null) : base(message, inner) { }
+    public FeedException(string message, Exception? inner = null) : base(message, inner) { }
 }
 
-/// <summary>The people to keep, loaded from a flat JSON array of name strings.</summary>
+/// <summary>An immutable allowlist used for matching.</summary>
 public sealed class Allowlist
 {
     private readonly HashSet<string> _normalized;
@@ -25,52 +25,74 @@ public sealed class Allowlist
 
     private static string Names_Normalize(string name) => FilterIcs.Names.Normalize(name);
 
-    public static Allowlist Load(string path)
+    /// <summary>Build from a list of names (de-duped, trimmed). Throws on blank entries.</summary>
+    public static Allowlist FromNames(IEnumerable<string> names)
     {
-        string text;
-        try
+        var ordered = new List<string>();
+        var seen = new HashSet<string>();
+        foreach (string item in names)
         {
-            text = File.ReadAllText(path);
+            if (string.IsNullOrWhiteSpace(item))
+                throw new FeedException("'names' entries must be non-empty strings");
+            string trimmed = item.Trim();
+            string key = FilterIcs.Names.Normalize(trimmed);
+            if (seen.Add(key))
+                ordered.Add(trimmed);
         }
-        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
-        {
-            throw new AllowlistException($"allowlist file not found: {path}", ex);
-        }
-        catch (IOException ex)
-        {
-            throw new AllowlistException($"cannot read allowlist file {path}: {ex.Message}", ex);
-        }
+        return new Allowlist(ordered, seen);
+    }
+}
 
+/// <summary>Parses one allowlist file object: { "fileName": ..., "names": [...] }.</summary>
+public static class FeedFile
+{
+    public static (string fileName, IReadOnlyList<string> names) ParseObject(string raw)
+    {
         JsonElement root;
         try
         {
-            using JsonDocument doc = JsonDocument.Parse(text);
+            using JsonDocument doc = JsonDocument.Parse(raw);
             root = doc.RootElement.Clone();
         }
         catch (JsonException ex)
         {
-            throw new AllowlistException($"allowlist is not valid JSON: {ex.Message}", ex);
+            throw new FeedException($"not valid JSON: {ex.Message}", ex);
         }
 
-        if (root.ValueKind != JsonValueKind.Array)
-            throw new AllowlistException("allowlist must be a JSON array of name strings");
+        if (root.ValueKind != JsonValueKind.Object)
+            throw new FeedException("allowlist file must be a JSON object");
+
+        if (!root.TryGetProperty("fileName", out JsonElement fn)
+            || fn.ValueKind != JsonValueKind.String
+            || string.IsNullOrWhiteSpace(fn.GetString()))
+        {
+            throw new FeedException("missing or empty 'fileName'");
+        }
+
+        if (!root.TryGetProperty("names", out JsonElement namesEl)
+            || namesEl.ValueKind != JsonValueKind.Array)
+        {
+            throw new FeedException("'names' must be an array");
+        }
 
         var names = new List<string>();
-        var seen = new HashSet<string>();
-        foreach (JsonElement item in root.EnumerateArray())
+        foreach (JsonElement item in namesEl.EnumerateArray())
+            names.Add(item.ValueKind == JsonValueKind.String ? item.GetString() ?? "" : "");
+
+        return (fn.GetString()!, names);
+    }
+
+    public static (string fileName, IReadOnlyList<string> names) Load(string path)
+    {
+        string raw;
+        try
         {
-            if (item.ValueKind != JsonValueKind.String)
-                throw new AllowlistException("allowlist entries must be non-empty strings");
-            string value = item.GetString() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(value))
-                throw new AllowlistException("allowlist entries must be non-empty strings");
-
-            string trimmed = value.Trim();
-            string key = FilterIcs.Names.Normalize(trimmed);
-            if (seen.Add(key))
-                names.Add(trimmed);
+            raw = File.ReadAllText(path);
         }
-
-        return new Allowlist(names, seen);
+        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException or IOException)
+        {
+            throw new FeedException($"cannot read {path}: {ex.Message}", ex);
+        }
+        return ParseObject(raw);
     }
 }
