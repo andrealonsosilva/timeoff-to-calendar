@@ -1,4 +1,4 @@
-name: Publish filtered calendar
+name: Publish filtered calendars
 
 on:
   schedule:
@@ -15,10 +15,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'names.json'
+      - 'allowlists/**'
 
 permissions:
-  contents: read
+  contents: write      # commit the refreshed public/ back
   pages: write
   id-token: write
 
@@ -34,13 +34,10 @@ jobs:
       IMPL: ${{ github.event.inputs.implementation || 'python' }}
       SOURCE_ICS_URL: ${{ secrets.SOURCE_ICS_URL }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4   # brings in the committed public/ = last-good for every feed
 
       - name: Log run start
         run: echo "Run started $(date -u +'%Y-%m-%dT%H:%M:%SZ') UTC — implementation=$IMPL"
-
-      - name: Create output directory
-        run: mkdir -p public
 
       # --- Python implementation ---
       - name: Set up Python
@@ -55,7 +52,9 @@ jobs:
         if: env.IMPL == 'python'
         env:
           PYTHONPATH: src/python
-        run: python -m filter_ics --allowlist names.json --output public/whos-out.ics --verbose
+        run: |
+          set -o pipefail
+          python -m filter_ics --allowlists-dir allowlists --output-dir public --verbose | tee run.log
 
       # --- .NET implementation ---
       - name: Set up .NET
@@ -65,10 +64,32 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Filter (.NET)
         if: env.IMPL == 'dotnet'
-        run: dotnet run --project src/dotnet/FilterIcs/FilterIcs.csproj -c Release -- --allowlist names.json --output public/whos-out.ics --verbose
+        run: |
+          set -o pipefail
+          dotnet run --project src/dotnet/FilterIcs/FilterIcs.csproj -c Release -- --allowlists-dir allowlists --output-dir public --verbose | tee run.log
 
-      # Only reached if the filter step above succeeded — a failure here means the
-      # previous Pages deployment is left untouched (last-good preserved).
+      # Surface partial failures without blocking the good feeds.
+      - name: Flag skipped feeds
+        run: |
+          if grep -q 'skipped=[1-9]' run.log; then
+            echo "::warning::One or more feeds were skipped — see the run log for details."
+          fi
+
+      # Persist the refreshed feeds so each feed's last-good survives across runs.
+      - name: Commit refreshed feeds
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public
+          if git diff --cached --quiet; then
+            echo "no feed changes to commit"
+          else
+            git commit -m "chore: refresh published feeds [skip ci]"
+            git push
+          fi
+
+      # Only reached if the filter step above succeeded — a failure there means the previous
+      # Pages deployment (and committed public/) is left untouched (per-feed last-good preserved).
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

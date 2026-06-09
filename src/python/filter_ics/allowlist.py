@@ -1,7 +1,8 @@
-"""Load and validate the people allowlist (``names.json``).
+"""Allowlist primitives and per-feed allowlist-file parsing.
 
-Contract: ``specs/001-filter-ics-people/contracts/allowlist.schema.json`` — a flat JSON
-array of non-empty name strings. Matching is case-insensitive and whitespace-trimmed.
+A feed is one JSON object file: ``{ "fileName": "...", "names": [...] }`` — see
+``specs/002-multi-ics-feeds/contracts/allowlist-file.schema.json``. Matching is
+case-insensitive and whitespace-trimmed (unchanged from feature 001).
 """
 
 from __future__ import annotations
@@ -11,8 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-class AllowlistError(Exception):
-    """Raised when the allowlist file is missing, not JSON, or schema-invalid (exit 4)."""
+class FeedError(Exception):
+    """A per-feed problem (bad JSON, missing fileName, bad names). The feed is skipped."""
 
 
 def _normalize(name: str) -> str:
@@ -21,11 +22,7 @@ def _normalize(name: str) -> str:
 
 @dataclass(frozen=True)
 class Allowlist:
-    """An immutable allowlist.
-
-    ``names`` keeps the original (trimmed) spellings for reporting; ``normalized`` is the
-    lookup set used for matching.
-    """
+    """An immutable allowlist used for matching."""
 
     names: tuple[str, ...]
     normalized: frozenset[str]
@@ -34,37 +31,52 @@ class Allowlist:
         return _normalize(name) in self.normalized
 
 
-def load_allowlist(path: str | Path) -> Allowlist:
-    """Load ``names.json`` into an :class:`Allowlist`.
+def build_allowlist(names: list) -> Allowlist:
+    """Build an :class:`Allowlist` from a list of name strings (de-duped, trimmed).
 
-    Raises :class:`AllowlistError` on any problem so the caller can exit 4 without
-    touching the published output.
+    Raises :class:`FeedError` if any entry is not a non-empty string.
     """
-    p = Path(path)
-    try:
-        raw = p.read_text(encoding="utf-8")
-    except FileNotFoundError as exc:
-        raise AllowlistError(f"allowlist file not found: {p}") from exc
-    except OSError as exc:
-        raise AllowlistError(f"cannot read allowlist file {p}: {exc}") from exc
-
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        raise AllowlistError(f"allowlist is not valid JSON: {exc}") from exc
-
-    if not isinstance(data, list):
-        raise AllowlistError("allowlist must be a JSON array of name strings")
-
     seen: set[str] = set()
-    names: list[str] = []
-    for item in data:
+    ordered: list[str] = []
+    for item in names:
         if not isinstance(item, str) or not item.strip():
-            raise AllowlistError("allowlist entries must be non-empty strings")
+            raise FeedError("'names' entries must be non-empty strings")
         trimmed = item.strip()
         key = _normalize(trimmed)
         if key not in seen:
             seen.add(key)
-            names.append(trimmed)
+            ordered.append(trimmed)
+    return Allowlist(names=tuple(ordered), normalized=frozenset(seen))
 
-    return Allowlist(names=tuple(names), normalized=frozenset(seen))
+
+def parse_feed_object(raw: str) -> tuple[str, list]:
+    """Parse an allowlist-file body into ``(fileName, names)``. Raises :class:`FeedError`."""
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise FeedError(f"not valid JSON: {exc}") from exc
+
+    if not isinstance(data, dict):
+        raise FeedError("allowlist file must be a JSON object")
+
+    file_name = data.get("fileName")
+    if not isinstance(file_name, str) or not file_name.strip():
+        raise FeedError("missing or empty 'fileName'")
+
+    names = data.get("names")
+    if not isinstance(names, list):
+        raise FeedError("'names' must be an array")
+
+    return file_name, names
+
+
+def load_feed_file(path: str | Path) -> tuple[str, list]:
+    """Read and parse one allowlist file into ``(fileName, names)``. Raises :class:`FeedError`."""
+    p = Path(path)
+    try:
+        raw = p.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise FeedError(f"file not found: {p}") from exc
+    except OSError as exc:
+        raise FeedError(f"cannot read {p}: {exc}") from exc
+    return parse_feed_object(raw)

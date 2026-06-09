@@ -20,9 +20,6 @@ obj/
 *.user
 *.suo
 
-# --- Generated output (published by CI, not committed) ---
-/whos-out.ics
-
 # --- Universal ---
 .DS_Store
 Thumbs.db

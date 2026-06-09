@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andrealonsosilva/timeoff-to-calendar/contracts/allowlist-file.schema.json",
+  "title": "Allowlist File (one feed definition)",
+  "description": "One JSON object per feed, stored in the allowlists/ folder. 'fileName' names the published .ics; 'names' is the people to keep (matched on the event-title name prefix, case-insensitive, trimmed — same rule as feature 001).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["fileName", "names"],
+  "properties": {
+    "fileName": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Output base name for the feed's .ics. Sanitized to a safe single path segment (letters, digits, '-', '_'); no path separators or '..'. A '.ics' extension is added if absent and never doubled.",
+      "pattern": "^[^/\\\\]+$"
+    },
+    "names": {
+      "type": "array",
+      "description": "People to keep in this feed. Empty array is valid (produces an empty feed).",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    }
+  },
+  "examples": [
+    { "fileName": "whos-out", "names": ["John Doe", "Jane Doe"] },
+    { "fileName": "engineering", "names": [] }
+  ]
+}
