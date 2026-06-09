@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/andrealonsosilva/timeoff-to-calendar/contracts/allowlist.schema.json",
+  "title": "Time-Off Allowlist",
+  "description": "Flat list of display names to keep in the filtered calendar. A name matches an event when it equals the event SUMMARY prefix before the first ' (' (case-insensitive, trimmed).",
+  "type": "array",
+  "items": {
+    "type": "string",
+    "minLength": 1,
+    "pattern": "\\S",
+    "description": "A person's display name exactly as it appears at the start of the event title."
+  },
+  "uniqueItems": false,
+  "examples": [
+    ["Pedro Fernandes", "Luciano Lizzoni", "Thiago Bessa"],
+    []
+  ]
+}

@@ -1,0 +1,32 @@
+# --- Secrets (never commit the feed URL / token) ---
+.env
+.env.*
+*.secret
+
+# --- Python ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# --- C# / .NET ---
+bin/
+obj/
+*.user
+*.suo
+
+# --- Generated output (published by CI, not committed) ---
+/whos-out.ics
+
+# --- Universal ---
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/

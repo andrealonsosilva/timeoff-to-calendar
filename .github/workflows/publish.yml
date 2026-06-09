@@ -1,0 +1,86 @@
+name: Publish filtered calendar
+
+on:
+  schedule:
+    # Twice daily (UTC). GitHub cron is best-effort; the <=12h freshness target has margin.
+    - cron: '0 6 * * *'
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+    inputs:
+      implementation:
+        description: 'Which implementation to run'
+        type: choice
+        options: [python, dotnet]
+        default: python
+  push:
+    branches: [main]
+    paths:
+      - 'names.json'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one publish at a time; do not cancel an in-progress deploy.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      IMPL: ${{ github.event.inputs.implementation || 'python' }}
+      SOURCE_ICS_URL: ${{ secrets.SOURCE_ICS_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log run start
+        run: echo "Run started $(date -u +'%Y-%m-%dT%H:%M:%SZ') UTC — implementation=$IMPL"
+
+      - name: Create output directory
+        run: mkdir -p public
+
+      # --- Python implementation ---
+      - name: Set up Python
+        if: env.IMPL == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python dependencies
+        if: env.IMPL == 'python'
+        run: pip install icalendar httpx
+      - name: Filter (Python)
+        if: env.IMPL == 'python'
+        env:
+          PYTHONPATH: src/python
+        run: python -m filter_ics --allowlist names.json --output public/whos-out.ics --verbose
+
+      # --- .NET implementation ---
+      - name: Set up .NET
+        if: env.IMPL == 'dotnet'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Filter (.NET)
+        if: env.IMPL == 'dotnet'
+        run: dotnet run --project src/dotnet/FilterIcs/FilterIcs.csproj -c Release -- --allowlist names.json --output public/whos-out.ics --verbose
+
+      # Only reached if the filter step above succeeded — a failure here means the
+      # previous Pages deployment is left untouched (last-good preserved).
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
