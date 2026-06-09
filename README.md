@@ -11,7 +11,7 @@ can be subscribed to from Outlook. A GitHub Actions workflow refreshes it twice 
 
 1. Fetch the source feed from `SOURCE_ICS_URL`.
 2. Keep each event whose **person name** — the part of the event title before ` (`, e.g.
-   `Pedro Fernandes` in `Pedro Fernandes (Folga - 11 dias)` — is in `names.json`
+   `John Doe` in `John Doe (Folga - 11 dias)` — is in `names.json`
    (case-insensitive, whitespace-trimmed).
 3. Write a valid filtered `.ics`, preserving every kept event and the calendar name.
 4. Publish to GitHub Pages. Any fetch/parse/allowlist failure leaves the previously
@@ -22,7 +22,7 @@ can be subscribed to from Outlook. A GitHub Actions workflow refreshes it twice 
 A flat JSON array of names, exactly as they appear at the start of each event title:
 
 ```json
-["Pedro Fernandes", "Thiago Bessa"]
+["John Doe", "Jane Doe"]
 ```
 
 To change who appears, edit `names.json` and push to `main` — the workflow republishes

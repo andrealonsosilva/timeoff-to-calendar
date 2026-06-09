@@ -8,11 +8,11 @@ from filter_ics import extract_name
 @pytest.mark.parametrize(
     "summary, expected",
     [
-        ("Pedro Fernandes (Folga - 11 dias)", "Pedro Fernandes"),
-        ("Luciano Lizzoni (Folga - 15 dias)", "Luciano Lizzoni"),
-        ("Maria Silva", "Maria Silva"),  # no parenthetical
+        ("John Doe (Folga - 11 dias)", "John Doe"),
+        ("Richard Doe (Folga - 15 dias)", "Richard Doe"),
+        ("Janet Doe", "Janet Doe"),  # no parenthetical
         ("  Trimmed Name  (Folga)", "Trimmed Name"),
-        ("José da Conceição (Férias)", "José da Conceição"),  # accents preserved
+        ("Renée Doe (Férias)", "Renée Doe"),  # accents preserved
     ],
 )
 def test_extract_name(summary, expected):

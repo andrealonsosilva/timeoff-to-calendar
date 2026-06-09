@@ -21,7 +21,7 @@ The set of people to keep. On disk it is `names.json` at the repo root.
 
 **Example**:
 ```json
-["Pedro Fernandes", "Luciano Lizzoni", "Thiago Bessa"]
+["John Doe", "Richard Doe", "Jane Doe"]
 ```
 
 ## Entity: Source Calendar Feed
@@ -45,7 +45,7 @@ verbatim** for retained events (FR-005):
 | Property | Type | Notes |
 |----------|------|-------|
 | `UID` | string | Stable per event; preserved. |
-| `SUMMARY` | string | e.g. `Pedro Fernandes (Folga - 11 dias)`. Source of the derived name. |
+| `SUMMARY` | string | e.g. `John Doe (Folga - 11 dias)`. Source of the derived name. |
 | `DTSTART` | date / date-time | Often `;VALUE=DATE` (all-day). Preserved with its parameters. |
 | `DTEND` | date / date-time | Preserved with its parameters. |
 | `DESCRIPTION` | string | e.g. `Folga (mai 18 – jun 1)`. Preserved. |

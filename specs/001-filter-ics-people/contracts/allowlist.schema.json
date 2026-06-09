@@ -12,7 +12,7 @@
   },
   "uniqueItems": false,
   "examples": [
-    ["Pedro Fernandes", "Luciano Lizzoni", "Thiago Bessa"],
+    ["John Doe", "Richard Doe", "Jane Doe"],
     []
   ]
 }

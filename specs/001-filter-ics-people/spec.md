@@ -80,7 +80,7 @@ As the maintainer, I want the published calendar refreshed automatically twice a
 - **FR-006**: System MUST produce a valid iCalendar feed as output that standard calendar clients, including Outlook, can subscribe to.
 - **FR-007**: System MUST make the output feed reachable at a stable URL that Outlook can subscribe to as an internet calendar; the URL MUST remain constant across refreshes so the subscription does not break.
 - **FR-008**: System MUST regenerate the output feed automatically twice per day.
-- **FR-009**: System MUST decide whether a source entry belongs to an allowlisted person by matching the person's display name. The display name is the leading portion of the entry's title before the trailing parenthetical detail (e.g., in `Pedro Fernandes (Folga - 11 dias)` the name is `Pedro Fernandes`). An entry is kept when its extracted name matches a name in the allowlist.
+- **FR-009**: System MUST decide whether a source entry belongs to an allowlisted person by matching the person's display name. The display name is the leading portion of the entry's title before the trailing parenthetical detail (e.g., in `John Doe (Folga - 11 dias)` the name is `John Doe`). An entry is kept when its extracted name matches a name in the allowlist.
 - **FR-010**: Identity matching MUST tolerate trivial differences in display name such as letter case and leading/trailing whitespace.
 - **FR-011**: When the source cannot be retrieved or cannot be interpreted as a calendar, the system MUST NOT overwrite the previously published feed, and MUST record the failure.
 - **FR-012**: When the JSON allowlist is missing or invalid, the system MUST fail the run safely without overwriting the previously published feed, and MUST record the failure.
@@ -90,7 +90,7 @@ As the maintainer, I want the published calendar refreshed automatically twice a
 
 - **Source Calendar Feed**: The upstream iCalendar feed retrieved from the configured URL; contains time-off entries for many people, only some of whom should be kept.
 - **Time-Off Entry**: A single calendar event in the source representing one person's time off, with at least a date range, a title, and an identifier of the person it belongs to.
-- **Allowlist**: The JSON file listing the people to keep — a flat array of name strings, e.g. `[ "Pedro Fernandes", "Luciano Lizzoni" ]`. Each string is one person's display name exactly as it appears at the start of the entry title.
+- **Allowlist**: The JSON file listing the people to keep — a flat array of name strings, e.g. `[ "John Doe", "Richard Doe" ]`. Each string is one person's display name exactly as it appears at the start of the entry title.
 - **Person (Allowlist Entry)**: One kept individual, represented solely by their display name string. The source feed exposes no email or other stable identifier, so the name is the only matching key.
 - **Filtered Calendar Feed (Output)**: The published iCalendar feed containing only the retained entries, served at a stable subscribable URL.
 

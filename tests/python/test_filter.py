@@ -21,19 +21,19 @@ def _uids(cal: Calendar) -> set[str]:
 
 def test_keeps_only_allowlisted_people():
     raw = FIXTURE.read_bytes()
-    result = filter_calendar(raw, _allowlist("Pedro Fernandes", "Thiago Bessa"))
+    result = filter_calendar(raw, _allowlist("John Doe", "Jane Doe"))
 
     assert result.read == 4
     assert result.kept == 2
     assert result.dropped == 2
     # I3: count matches; I1/I2: exactly the allowlisted people's events remain.
-    assert _uids(result.calendar) == {"evt-pedro-1", "evt-thiago-1"}
+    assert _uids(result.calendar) == {"evt-john-1", "evt-jane-1"}
 
 
 def test_case_and_whitespace_insensitive():
     raw = FIXTURE.read_bytes()
-    result = filter_calendar(raw, _allowlist("  pedro fernandes  "))
-    assert _uids(result.calendar) == {"evt-pedro-1"}
+    result = filter_calendar(raw, _allowlist("  john doe  "))
+    assert _uids(result.calendar) == {"evt-john-1"}
 
 
 def test_empty_allowlist_yields_no_events():
@@ -45,21 +45,21 @@ def test_empty_allowlist_yields_no_events():
 
 def test_calendar_properties_preserved():
     raw = FIXTURE.read_bytes()
-    result = filter_calendar(raw, _allowlist("Pedro Fernandes"))
+    result = filter_calendar(raw, _allowlist("John Doe"))
     assert str(result.calendar.get("X-WR-CALNAME")) == "Quem está fora"
     assert str(result.calendar.get("VERSION")) == "2.0"
 
 
 def test_kept_event_preserved_verbatim():
     raw = FIXTURE.read_bytes()
-    result = filter_calendar(raw, _allowlist("Pedro Fernandes"))
+    result = filter_calendar(raw, _allowlist("John Doe"))
     (event,) = list(result.calendar.walk("VEVENT"))
-    assert str(event.get("SUMMARY")) == "Pedro Fernandes (Folga - 11 dias)"
+    assert str(event.get("SUMMARY")) == "John Doe (Folga - 11 dias)"
     assert str(event.get("DESCRIPTION")) == "Folga (mai 18 – jun 1)"
     assert event.get("DTSTART").to_ical() == b"20260518"
 
 
 def test_unmatched_names_reported():
     raw = FIXTURE.read_bytes()
-    result = filter_calendar(raw, _allowlist("Pedro Fernandes", "Nobody Here"))
+    result = filter_calendar(raw, _allowlist("John Doe", "Nobody Here"))
     assert result.unmatched_names == ["Nobody Here"]

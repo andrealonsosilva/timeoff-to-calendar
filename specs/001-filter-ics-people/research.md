@@ -59,7 +59,7 @@ always-on machine — unjustified here).
 `SUMMARY` equals an allowlist entry. The name prefix is `SUMMARY` truncated at the first
 ` (` (space-open-paren), then trimmed.
 
-- Example: `SUMMARY:Pedro Fernandes (Folga - 11 dias)` → name = `Pedro Fernandes`.
+- Example: `SUMMARY:John Doe (Folga - 11 dias)` → name = `John Doe`.
 - If there is no ` (` in the summary, the whole trimmed `SUMMARY` is the name.
 
 **Matching is case-insensitive and whitespace-trimmed** on both sides (FR-010). Internal

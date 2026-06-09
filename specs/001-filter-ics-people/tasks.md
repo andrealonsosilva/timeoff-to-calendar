@@ -31,7 +31,7 @@ are marked `[P]` since they touch different files.
 - [x] T001 Create repository structure per plan: `src/python/filter_ics/`, `src/dotnet/FilterIcs/`, `tests/python/`, `tests/dotnet/`, `tests/fixtures/`, `.github/workflows/`
 - [x] T002 [P] Initialize Python project in `src/python/pyproject.toml` (Python 3.12; deps: `icalendar`, `httpx`; dev: `pytest`)
 - [x] T003 [P] Initialize .NET 8 console project `src/dotnet/FilterIcs/FilterIcs.csproj` (dep: `Ical.Net`) and xUnit test project `tests/dotnet/FilterIcs.Tests.csproj`
-- [x] T004 [P] Seed `names.json` at repo root with sample names (e.g. `["Pedro Fernandes", "Thiago Bessa"]`) per `contracts/allowlist.schema.json`
+- [x] T004 [P] Seed `names.json` at repo root with sample names (e.g. `["John Doe", "Jane Doe"]`) per `contracts/allowlist.schema.json`
 - [x] T005 [P] Configure linting/formatting: `ruff`/`black` config for Python in `src/python/pyproject.toml`; `.editorconfig` + `dotnet format` for C#
 
 ---
@@ -132,7 +132,7 @@ confirm the feed updates after a run; a failing run leaves the prior feed live (
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [x] T038 [P] Cross-implementation equivalence test: Python and C# produce the same kept event-set/property values on the shared fixture (per `contracts/output-ics.md`) in `tests/` — **realized as both suites asserting the identical expected result (`{evt-pedro-1, evt-thiago-1}`, preserved SUMMARY/DTSTART/calendar name) against `tests/fixtures/source.ics`; byte-equality intentionally not required (research R5). C# allowlist safety+behavior tests (T028/T030) are consolidated in `tests/dotnet/AllowlistTests.cs`.**
+- [x] T038 [P] Cross-implementation equivalence test: Python and C# produce the same kept event-set/property values on the shared fixture (per `contracts/output-ics.md`) in `tests/` — **realized as both suites asserting the identical expected result (`{evt-john-1, evt-jane-1}`, preserved SUMMARY/DTSTART/calendar name) against `tests/fixtures/source.ics`; byte-equality intentionally not required (research R5). C# allowlist safety+behavior tests (T028/T030) are consolidated in `tests/dotnet/AllowlistTests.cs`.**
 - [x] T039 [US3-adjacent] Add a workflow input to select the implementation (`python` | `dotnet`) and document switching in `README.md` (depends on T025)
 - [x] T040 [P] Finalize `README.md`: overview, local run for both implementations, Outlook subscription steps
 - [x] T041 Run the `quickstart.md` validation scenarios V1–V8 end-to-end and record results — **V1, V3, V4, V5, V7, V8 covered by the automated suites (42 tests green). V2 (Outlook subscription) and the live half of V6, plus the schedule check, require the deployed Pages feed (see T037).**

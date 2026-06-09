@@ -45,11 +45,11 @@ any other properties present on the source event. No property is dropped or rewr
 
 Source (excerpt):
 ```
-SUMMARY:Pedro Fernandes (Folga - 11 dias)   ← name "Pedro Fernandes"
-SUMMARY:Luciano Lizzoni (Folga - 15 dias)   ← name "Luciano Lizzoni"
-SUMMARY:Thiago Bessa (Folga - 20 dias)      ← name "Thiago Bessa"
+SUMMARY:John Doe (Folga - 11 dias)   ← name "John Doe"
+SUMMARY:Richard Doe (Folga - 15 dias)   ← name "Richard Doe"
+SUMMARY:Jane Doe (Folga - 20 dias)      ← name "Jane Doe"
 ```
-`names.json` = `["Pedro Fernandes", "Thiago Bessa"]`
+`names.json` = `["John Doe", "Jane Doe"]`
 
-Output contains the **Pedro Fernandes** and **Thiago Bessa** events unchanged; the
-**Luciano Lizzoni** event is dropped.
+Output contains the **John Doe** and **Jane Doe** events unchanged; the
+**Richard Doe** event is dropped.

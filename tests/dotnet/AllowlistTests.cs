@@ -18,10 +18,10 @@ public class AllowlistTests
     [Fact]
     public void Loads_names_and_matches_case_insensitively()
     {
-        Allowlist al = Allowlist.Load(WriteTemp("[\"Pedro Fernandes\", \"Thiago Bessa\"]"));
-        Assert.Equal(new[] { "Pedro Fernandes", "Thiago Bessa" }, al.Names);
-        Assert.True(al.Contains("pedro fernandes"));
-        Assert.False(al.Contains("Maria Silva"));
+        Allowlist al = Allowlist.Load(WriteTemp("[\"John Doe\", \"Jane Doe\"]"));
+        Assert.Equal(new[] { "John Doe", "Jane Doe" }, al.Names);
+        Assert.True(al.Contains("john doe"));
+        Assert.False(al.Contains("Janet Doe"));
     }
 
     [Fact]
@@ -34,8 +34,8 @@ public class AllowlistTests
     [Fact]
     public void Duplicates_are_deduped()
     {
-        Allowlist al = Allowlist.Load(WriteTemp("[\"Pedro Fernandes\", \"  pedro fernandes  \"]"));
-        Assert.Equal(new[] { "Pedro Fernandes" }, al.Names);
+        Allowlist al = Allowlist.Load(WriteTemp("[\"John Doe\", \"  john doe  \"]"));
+        Assert.Equal(new[] { "John Doe" }, al.Names);
     }
 
     // ---- T028: safety ----

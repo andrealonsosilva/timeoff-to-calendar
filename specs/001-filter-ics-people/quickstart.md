@@ -10,7 +10,7 @@ and the source; contracts are referenced, not duplicated.
 - A `names.json` allowlist at the repo root — see `contracts/allowlist.schema.json`.
 
 ```json
-["Pedro Fernandes", "Luciano Lizzoni", "Thiago Bessa"]
+["John Doe", "Richard Doe", "Jane Doe"]
 ```
 
 ## Run locally

@@ -81,7 +81,7 @@ specs/001-filter-ics-people/
 ### Source Code (repository root)
 
 ```text
-names.json                     # The allowlist: ["Pedro Fernandes", "Luciano Lizzoni", ...]
+names.json                     # The allowlist: ["John Doe", "Richard Doe", ...]
 
 src/
 ├── python/

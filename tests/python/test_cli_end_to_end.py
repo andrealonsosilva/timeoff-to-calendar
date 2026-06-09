@@ -15,7 +15,7 @@ def test_cli_success_writes_filtered_feed(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("SOURCE_ICS_URL", "https://example.invalid/feed?token=SECRET")
 
     names = tmp_path / "names.json"
-    names.write_text('["Pedro Fernandes", "Thiago Bessa"]', encoding="utf-8")
+    names.write_text('["John Doe", "Jane Doe"]', encoding="utf-8")
     output = tmp_path / "whos-out.ics"
 
     code = main(["--allowlist", str(names), "--output", str(output)])
@@ -23,7 +23,7 @@ def test_cli_success_writes_filtered_feed(tmp_path, monkeypatch, capsys):
 
     cal = Calendar.from_ical(output.read_bytes())
     uids = {str(c.get("UID")) for c in cal.walk("VEVENT")}
-    assert uids == {"evt-pedro-1", "evt-thiago-1"}
+    assert uids == {"evt-john-1", "evt-jane-1"}
 
     out = capsys.readouterr().out
     assert "kept 2" in out
